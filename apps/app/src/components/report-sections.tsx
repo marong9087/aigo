@@ -1,7 +1,7 @@
 // 사고 분석 리포트 화면의 조각들(ADR 0027). 데이터는 서버 Report를 그대로 쓰고, 화면에서 새 사실을 만들지 않는다.
 import * as WebBrowser from 'expo-web-browser';
 import type { ReactNode } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { LEVEL, LIKELIHOOD, faultRange, formatTimePrecise, signed, type Evidence, type FaultAssessment, type Report } from '@/lib/analysis';
 import { Card, Icon, ListRow, TimeChip } from '@/components/ui';
 import { color, radius, space, type } from '@/theme';
@@ -326,35 +326,22 @@ export function Footer({ text }: { text: string }) {
   );
 }
 
-// 리포트 화면 머리글(ADR 0027): 남색 바탕에 로고와 REPORT, 제목·날짜는 화면 가운데에 둔다.
+// 리포트 화면 머리글(ADR 0027): 남색 바탕, 제목·날짜는 화면 가운데에 둔다.
 // 뒤로·공유 버튼은 양옆에 같은 너비로 두어 가운데 줄이 한쪽으로 밀리지 않게 한다.
-const logoMark = require('../../assets/brand/adaptive-foreground.png');
-const logoWord = require('../../assets/brand/wordtext-light.png');
 const SIDE = 38;
 export const headerCircle = { width: SIDE, height: SIDE, borderRadius: SIDE / 2, backgroundColor: color.ink2, alignItems: 'center', justifyContent: 'center' } as const;
 
 export function ReportHeader({ title, subtitle, onBack, right }: { title: string; subtitle?: string; onBack: () => void; right?: ReactNode }) {
   return (
-    <View style={{ backgroundColor: color.ink, marginHorizontal: -space[4], paddingHorizontal: space[4], paddingTop: space[1], paddingBottom: space[5], borderBottomLeftRadius: radius.card, borderBottomRightRadius: radius.card, gap: space[3] }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={headerCircle}>
-          <Icon name="back" size={18} color={color.white} />
-        </Pressable>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[2] }} accessible accessibilityLabel="AIGO 리포트">
-          {/* 그림 둘레의 투명 여백을 음수 여백으로 덜어 로고 크기를 맞춘다. */}
-          <View style={{ width: 24, height: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
-            <Image source={logoMark} style={{ width: 36, height: 36 }} />
-          </View>
-          <Image source={logoWord} style={{ width: 54, height: (54 * 410) / 1374 }} />
-          <View style={{ width: 1, height: 12, backgroundColor: color.ink3 }} />
-          <Text style={[type.micro, { color: color.mint, fontWeight: '700', letterSpacing: 1.5 }]}>REPORT</Text>
-        </View>
-        {right ?? <View style={{ width: SIDE }} />}
-      </View>
-      <View style={{ alignItems: 'center', gap: 2, paddingHorizontal: space[2] }}>
+    <View style={{ backgroundColor: color.ink, marginHorizontal: -space[4], paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[5], borderBottomLeftRadius: radius.card, borderBottomRightRadius: radius.card, flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={headerCircle}>
+        <Icon name="back" size={18} color={color.white} />
+      </Pressable>
+      <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
         <Text accessibilityRole="header" style={[type.title, { color: color.white, fontSize: 20, textAlign: 'center' }]} numberOfLines={2}>{title}</Text>
         {subtitle ? <Text style={[type.caption, { color: color.brand400, textAlign: 'center' }]} numberOfLines={1}>{subtitle}</Text> : null}
       </View>
+      {right ?? <View style={{ width: SIDE }} />}
     </View>
   );
 }
