@@ -334,9 +334,10 @@ const FADE = 56;
 export const headerCircle = { width: SIDE, height: SIDE, borderRadius: SIDE / 2, backgroundColor: color.ink2, alignItems: 'center', justifyContent: 'center' } as const;
 
 export function ReportHeader({ title, subtitle, onBack, right }: { title: string; subtitle?: string; onBack: () => void; right?: ReactNode }) {
+  // 탭이 그라데이션 아래쪽에 겹쳐 올라오도록 아래 여백을 당긴다.
   return (
-    <View style={{ marginHorizontal: -space[4], marginBottom: -space[6] }}>
-      <View style={{ backgroundColor: color.ink, paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[3], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+    <View style={{ marginHorizontal: -space[4], marginBottom: -(FADE - space[3]) }}>
+      <View style={{ backgroundColor: color.ink, paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[1], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
         <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={headerCircle}>
           <Icon name="back" size={18} color={color.white} />
         </Pressable>
