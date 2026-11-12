@@ -1,4 +1,5 @@
 // analysis.ts가 api.ts를 거쳐 Clerk를 불러오고, Clerk는 타이머를 남긴다.
+jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default); // 더 보기 메뉴가 안전 영역을 읽는다.
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn(() => Promise.resolve()) }));
 jest.mock('@clerk/expo', () => ({ useAuth: jest.fn() }));
 const mockPlayer = { pause: jest.fn(), currentTime: 0, loop: true, status: 'idle' };
@@ -12,6 +13,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { Analysis, Report } from '@/lib/analysis';
 import { ProgressView, ReportView } from './analysis';
+import { ReportMenu } from './report-sections';
 
 const report: Report = {
   involvement: 'party',
@@ -147,4 +149,26 @@ test('리포트 탭은 선택 상태를 알리고 같은 탭 목록을 유지한
   expect(screen.getAllByRole('tab').map((t) => t.props.accessibilityLabel)).toEqual(['요약', '근거', '기준']);
   expect(screen.getByRole('tab', { name: '기준' }).props.accessibilityState).toEqual({ selected: true });
   expect(screen.getByRole('tab', { name: '요약' }).props.accessibilityState).toEqual({ selected: false });
+});
+
+test('더 보기 메뉴는 글자로 된 동작을 보이고, 누르면 메뉴를 닫고 동작을 실행한다', async () => {
+  const send = jest.fn();
+  const del = jest.fn();
+  const onClose = jest.fn();
+  await render(
+    <ReportMenu
+      visible
+      onClose={onClose}
+      actions={[
+        { label: '리포트 PDF로 보내기', icon: 'share', onPress: send },
+        { label: '영상 다시 올리기', icon: 'upload', onPress: () => {} },
+        { label: '분석 삭제', icon: 'trash', onPress: del, danger: true, disabled: true },
+      ]}
+    />,
+  );
+  await fireEvent.press(screen.getByRole('button', { name: '리포트 PDF로 보내기' }));
+  expect(onClose).toHaveBeenCalled();
+  expect(send).toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: '분석 삭제' }).props.accessibilityState).toEqual({ disabled: true });
+  expect(screen.getByRole('button', { name: '취소' })).toBeTruthy();
 });

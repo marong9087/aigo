@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, type ScrollViewInstance } from 'react-native';
 import { ErrorLine, FailureNotice, ProgressView, ReportView, type ReportTab } from '@/components/analysis';
 import { Button, Card, Icon, Screen } from '@/components/ui';
-import { ReportHeader, headerCircle } from '@/components/report-sections';
+import { ReportHeader, ReportMenu, headerCircle, type MenuAction } from '@/components/report-sections';
 import { analysisTitle, seoulDate, useAnalysis } from '@/lib/analysis';
 import { useApi } from '@/lib/api';
 import type { ApiFailure } from '@/lib/api';
@@ -18,6 +18,7 @@ export default function AnalysisScreen() {
   const { analysis, notFound, stale, stop, reload } = useAnalysis(id);
   const [deleting, setDeleting] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<ReportTab>('summary');
   const scroll = useRef<ScrollViewInstance>(null);
@@ -74,16 +75,26 @@ export default function AnalysisScreen() {
   const report = analysis?.status === 'done' ? analysis.report : null;
   const tabbed = !!report && report.involvement !== 'none';
   const subtitle = analysis ? [tabbed ? (report.involvement === 'party' ? '내 차 사고' : '제3자 사고') : null, seoulDate(analysis.created_at), analysis.source === 'dashpi' ? 'DashPi' : null].filter(Boolean).join(' · ') : undefined;
-  const shareButton = report ? (
-    <Pressable accessibilityRole="button" accessibilityLabel="PDF로 공유" accessibilityState={{ disabled: sharing }} disabled={sharing} onPress={share} style={headerCircle}>
-      {sharing ? <ActivityIndicator color={color.white} /> : <Icon name="share" size={16} color={color.white} />}
+  // 오른쪽 위 "더 보기": 공유·다시 올리기·삭제를 글자로 된 메뉴에 모은다. 분석 중에는 다시 올리기를 숨긴다.
+  const busy = analysis?.status === 'queued' || analysis?.status === 'processing';
+  const actions: MenuAction[] = analysis
+    ? [
+        ...(report ? [{ label: '리포트 PDF로 보내기', icon: 'file' as const, onPress: share, disabled: sharing }] : []),
+        ...(!busy ? [{ label: '영상 다시 올리기', icon: 'upload' as const, onPress: () => router.dismissTo('/upload') }] : []),
+        { label: '분석 삭제', icon: 'trash' as const, onPress: remove, danger: true, disabled: deleting },
+      ]
+    : [];
+  const menuButton = analysis ? (
+    <Pressable accessibilityRole="button" accessibilityLabel="더 보기" accessibilityHint="리포트 PDF 보내기, 영상 다시 올리기, 분석 삭제" onPress={() => setMenuOpen(true)} style={headerCircle}>
+      {sharing || deleting ? <ActivityIndicator color={color.white} /> : <Icon name="dots" size={20} color={color.white} />}
     </Pressable>
   ) : undefined;
 
   return (
     <Screen scroll scrollRef={scroll} background={color.reportBg} topColor={color.ink} barStyle="light-content">
       <Stack.Screen options={{ headerShown: false }} />
-      <ReportHeader title={analysis ? analysisTitle(analysis) : `분석 #${id}`} subtitle={subtitle} onBack={back} right={shareButton} />
+      <ReportHeader title={analysis ? analysisTitle(analysis) : `분석 #${id}`} subtitle={subtitle} onBack={back} right={menuButton} />
+      <ReportMenu visible={menuOpen} actions={actions} onClose={() => setMenuOpen(false)} />
       {analysis ? (
         <>
           {/* 출처(DashPi)는 머리글 날짜 줄에 붙인다. 머리글과 탭 사이를 비워 두기 위해서다. */}
@@ -97,15 +108,9 @@ export default function AnalysisScreen() {
               <FailureNotice code="REPORT_MISSING" message="분석은 끝났지만 레포트가 없습니다. 영상을 다시 올려 주세요." />
             </Card>
           )}
+          {/* 실패했을 때는 다시 올리기를 본문에도 크게 둔다. 삭제·공유는 오른쪽 위 메뉴에 있다. */}
           {analysis.status !== 'queued' && analysis.status !== 'processing' && analysis.status !== 'done' ? (
             <Button label="영상 다시 올리기" onPress={() => router.dismissTo('/upload')} />
-          ) : null}
-          {/* 레포트 탭이 있으면 삭제는 기준 탭 맨 아래에 둔다. 오류는 맨 위와 버튼 바로 위에 모두 보인다. */}
-          {!tabbed || tab === 'basis' ? (
-            <>
-              <ErrorLine>{error}</ErrorLine>
-              <Button label="분석 삭제" variant="danger" icon="trash" disabled={deleting} onPress={remove} />
-            </>
           ) : null}
         </>
       ) : notFound ? null : (

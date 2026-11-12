@@ -1,9 +1,10 @@
 // 사고 분석 리포트 화면의 조각들(ADR 0027). 데이터는 서버 Report를 그대로 쓰고, 화면에서 새 사실을 만들지 않는다.
 import * as WebBrowser from 'expo-web-browser';
 import type { ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LEVEL, LIKELIHOOD, faultRange, formatTimePrecise, signed, type Evidence, type FaultAssessment, type Report } from '@/lib/analysis';
-import { Card, Icon, ListRow, TimeChip } from '@/components/ui';
+import { Card, Icon, ListRow, TimeChip, type IconName } from '@/components/ui';
 import { color, radius, space, type } from '@/theme';
 
 export type Seek = ((t: number) => void) | undefined;
@@ -375,5 +376,40 @@ export function ReportTabs<T extends string>({ options, value, onChange }: { opt
         );
       })}
     </View>
+  );
+}
+
+// 리포트 머리글 오른쪽 "더 보기" 메뉴(ADR 0027): 아래에서 올라오는 시트에 글자로 된 동작을 보인다.
+export type MenuAction = { label: string; icon: IconName; onPress: () => void; danger?: boolean; disabled?: boolean };
+export function ReportMenu({ visible, actions, onClose }: { visible: boolean; actions: MenuAction[]; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable accessibilityLabel="메뉴 닫기" onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' }}>
+        <Pressable onPress={() => {}} style={{ backgroundColor: color.white, borderTopLeftRadius: radius.card, borderTopRightRadius: radius.card, paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[4] + insets.bottom }}>
+          <View style={{ alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: color.gray4, marginBottom: space[2] }} />
+          {actions.map((a) => {
+            const fg = a.danger ? color.danger600 : color.gray12;
+            return (
+              <Pressable
+                key={a.label}
+                accessibilityRole="button"
+                accessibilityLabel={a.label}
+                accessibilityState={{ disabled: !!a.disabled }}
+                disabled={a.disabled}
+                onPress={() => { onClose(); a.onPress(); }}
+                style={({ pressed }) => ({ minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[2], borderRadius: radius.row, backgroundColor: pressed ? color.gray3 : 'transparent', opacity: a.disabled ? 0.4 : 1 })}
+              >
+                <Icon name={a.icon} size={20} color={fg} />
+                <Text style={[type.body, { fontSize: 16, fontWeight: '600', color: fg }]}>{a.label}</Text>
+              </Pressable>
+            );
+          })}
+          <Pressable accessibilityRole="button" accessibilityLabel="취소" onPress={onClose} style={{ minHeight: 52, alignItems: 'center', justifyContent: 'center', marginTop: space[2], borderRadius: radius.row, backgroundColor: color.gray3 }}>
+            <Text style={[type.body, { fontSize: 16, fontWeight: '600', color: color.gray11 }]}>취소</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
