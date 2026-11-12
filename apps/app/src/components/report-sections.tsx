@@ -326,16 +326,14 @@ export function Footer({ text }: { text: string }) {
   );
 }
 
-// 리포트 화면 머리글(ADR 0027): 남색 직각 상자, 제목·날짜는 화면 가운데에 둔다.
+// 리포트 화면 머리글(ADR 0027): 남색 직각 상자, 제목·날짜는 화면 가운데에 둔다. 남색은 탭 바로 위에서 끝난다.
 // 뒤로·공유 버튼은 양옆에 같은 너비로 두어 가운데 줄이 한쪽으로 밀리지 않게 한다.
 const SIDE = 38;
-// 탭이 날짜 바로 아래로 올라오도록 상자 아래쪽에 탭이 반쯤 걸치게 한다.
-const TAB_OVERLAP = 22;
 export const headerCircle = { width: SIDE, height: SIDE, borderRadius: SIDE / 2, backgroundColor: color.ink2, alignItems: 'center', justifyContent: 'center' } as const;
 
 export function ReportHeader({ title, subtitle, onBack, right }: { title: string; subtitle?: string; onBack: () => void; right?: ReactNode }) {
   return (
-    <View style={{ backgroundColor: color.ink, marginHorizontal: -space[4], marginBottom: -(TAB_OVERLAP + space[3]), paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: TAB_OVERLAP + space[2], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+    <View style={{ backgroundColor: color.ink, marginHorizontal: -space[4], marginBottom: -space[1], paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[3], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
       <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={headerCircle}>
         <Icon name="back" size={18} color={color.white} />
       </Pressable>
