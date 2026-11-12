@@ -2,7 +2,6 @@
 import * as WebBrowser from 'expo-web-browser';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { LEVEL, LIKELIHOOD, faultRange, formatTimePrecise, signed, type Evidence, type FaultAssessment, type Report } from '@/lib/analysis';
 import { Card, Icon, ListRow, TimeChip } from '@/components/ui';
 import { color, radius, space, type } from '@/theme';
@@ -327,37 +326,24 @@ export function Footer({ text }: { text: string }) {
   );
 }
 
-// 리포트 화면 머리글(ADR 0027): 남색 바탕, 제목·날짜는 화면 가운데에 둔다. 아래 모서리는 직각이고 남색이 바탕으로 그라데이션으로 빠진다.
+// 리포트 화면 머리글(ADR 0027): 남색 직각 상자, 제목·날짜는 화면 가운데에 둔다.
 // 뒤로·공유 버튼은 양옆에 같은 너비로 두어 가운데 줄이 한쪽으로 밀리지 않게 한다.
 const SIDE = 38;
-const FADE = 56;
+// 탭이 날짜 바로 아래로 올라오도록 상자 아래쪽에 탭이 반쯤 걸치게 한다.
+const TAB_OVERLAP = 22;
 export const headerCircle = { width: SIDE, height: SIDE, borderRadius: SIDE / 2, backgroundColor: color.ink2, alignItems: 'center', justifyContent: 'center' } as const;
 
 export function ReportHeader({ title, subtitle, onBack, right }: { title: string; subtitle?: string; onBack: () => void; right?: ReactNode }) {
-  // 탭이 그라데이션 아래쪽에 겹쳐 올라오도록 아래 여백을 당긴다.
   return (
-    <View style={{ marginHorizontal: -space[4], marginBottom: -(FADE - space[3]) }}>
-      <View style={{ backgroundColor: color.ink, paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[1], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={headerCircle}>
-          <Icon name="back" size={18} color={color.white} />
-        </Pressable>
-        <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-          <Text accessibilityRole="header" style={[type.title, { color: color.white, fontSize: 20, textAlign: 'center' }]} numberOfLines={2}>{title}</Text>
-          {subtitle ? <Text style={[type.caption, { color: color.brand400, textAlign: 'center' }]} numberOfLines={1}>{subtitle}</Text> : null}
-        </View>
-        {right ?? <View style={{ width: SIDE }} />}
+    <View style={{ backgroundColor: color.ink, marginHorizontal: -space[4], marginBottom: -(TAB_OVERLAP + space[3]), paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: TAB_OVERLAP + space[2], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={headerCircle}>
+        <Icon name="back" size={18} color={color.white} />
+      </Pressable>
+      <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+        <Text accessibilityRole="header" style={[type.title, { color: color.white, fontSize: 20, textAlign: 'center' }]} numberOfLines={2}>{title}</Text>
+        {subtitle ? <Text style={[type.caption, { color: color.brand400, textAlign: 'center' }]} numberOfLines={1}>{subtitle}</Text> : null}
       </View>
-      {/* 모서리를 둥글리지 않고, 남색이 아래 바탕으로 서서히 빠지게 한다. */}
-      <Svg width="100%" height={FADE} style={{ display: 'flex' }} pointerEvents="none">
-        <Defs>
-          <LinearGradient id="reportHeaderFade" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={color.ink} stopOpacity={1} />
-            <Stop offset="0.45" stopColor={color.ink} stopOpacity={0.4} />
-            <Stop offset="1" stopColor={color.ink} stopOpacity={0} />
-          </LinearGradient>
-        </Defs>
-        <Rect x="0" y="0" width="100%" height={FADE} fill="url(#reportHeaderFade)" />
-      </Svg>
+      {right ?? <View style={{ width: SIDE }} />}
     </View>
   );
 }
