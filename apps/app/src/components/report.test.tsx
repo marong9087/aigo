@@ -47,7 +47,7 @@ const analysis = (r: Partial<Analysis>): Analysis => ({
   ...r,
 });
 
-test('요약 탭에 예상 범위 게이지와 기준 도표가 보이고, 근거 탭을 누르면 onTab이 불린다', async () => {
+test('요약 탭에 예상 범위와 기준 도표가 보이고, 근거 탭을 누르면 onTab이 불린다', async () => {
   const onTab = jest.fn();
   await render(<ReportView analysis={analysis({})} onReload={() => {}} tab="summary" onTab={onTab} />);
   expect(screen.getByLabelText('예상 범위 20~40%')).toBeTruthy();
@@ -59,7 +59,7 @@ test('요약 탭에 예상 범위 게이지와 기준 도표가 보이고, 근�
 test('요약 탭의 충돌 시각을 누르면 근거 탭으로 바꾼다', async () => {
   const onTab = jest.fn();
   await render(<ReportView analysis={analysis({})} onReload={() => {}} tab="summary" onTab={onTab} />);
-  await fireEvent.press(screen.getByRole('button', { name: '0:11 장면으로 이동' }));
+  await fireEvent.press(screen.getByRole('button', { name: '0:11.2 장면으로 이동' }));
   expect(onTab).toHaveBeenCalledWith('evidence');
 });
 
@@ -132,4 +132,12 @@ test('http(s)가 아닌 url은 누를 수 없고 열지 않는다', async () => 
   expect(screen.getByText('도로교통법 제19조(안전거리 확보 등)')).toBeTruthy();
   expect(screen.queryByRole('button', { name: '도로교통법 제19조(안전거리 확보 등)' })).toBeNull();
   expect(WebBrowser.openBrowserAsync).not.toHaveBeenCalled();
+});
+
+test('기준 탭은 범위가 나온 과정과 미확인 조건을 보이고, 폭을 지어내지 않는다', async () => {
+  const fault = { ...report.fault!, unknown: ['신호 상태'], steps: [{ label: '방향지시등 미사용', delta: 10, evidence: { t: 9, text: '지시등이 보이지 않음' } }] };
+  await render(<ReportView analysis={analysis({ report: { ...report, fault } })} onReload={() => {}} tab="basis" onTab={() => {}} />);
+  expect(screen.getByText('범위가 나온 과정')).toBeTruthy();
+  expect(screen.getByText('+10')).toBeTruthy();
+  expect(screen.getByText(/추가 계산 근거 확인이 필요합니다/)).toBeTruthy();
 });

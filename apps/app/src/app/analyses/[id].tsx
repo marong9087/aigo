@@ -2,8 +2,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, type ScrollViewInstance } from 'react-native';
 import { ErrorLine, FailureNotice, ProgressView, ReportView, type ReportTab } from '@/components/analysis';
-import { Button, Card, Icon, Screen, TopBar, SourceChip } from '@/components/ui';
-import { circleButtonStyle } from '@/components/ui/TopBar';
+import { Button, Card, Icon, Screen, SourceChip } from '@/components/ui';
+import { ReportHeader, headerCircle } from '@/components/report-sections';
 import { analysisTitle, seoulDate, useAnalysis } from '@/lib/analysis';
 import { useApi } from '@/lib/api';
 import type { ApiFailure } from '@/lib/api';
@@ -75,15 +75,15 @@ export default function AnalysisScreen() {
   const tabbed = !!report && report.involvement !== 'none';
   const subtitle = analysis ? [tabbed ? (report.involvement === 'party' ? '내 차 사고' : '제3자 사고') : null, seoulDate(analysis.created_at)].filter(Boolean).join(' · ') : undefined;
   const shareButton = report ? (
-    <Pressable accessibilityRole="button" accessibilityLabel="PDF로 공유" accessibilityState={{ disabled: sharing }} disabled={sharing} onPress={share} style={circleButtonStyle}>
-      {sharing ? <ActivityIndicator color={color.ink} /> : <Icon name="share" size={16} color={color.ink} />}
+    <Pressable accessibilityRole="button" accessibilityLabel="PDF로 공유" accessibilityState={{ disabled: sharing }} disabled={sharing} onPress={share} style={headerCircle}>
+      {sharing ? <ActivityIndicator color={color.white} /> : <Icon name="share" size={16} color={color.white} />}
     </Pressable>
   ) : undefined;
 
   return (
-    <Screen scroll scrollRef={scroll}>
+    <Screen scroll scrollRef={scroll} background={color.reportBg} topColor={color.ink} barStyle="light-content">
       <Stack.Screen options={{ headerShown: false }} />
-      <TopBar title={analysis ? analysisTitle(analysis) : `분석 #${id}`} subtitle={subtitle} onBack={back} right={shareButton} />
+      <ReportHeader title={analysis ? analysisTitle(analysis) : `분석 #${id}`} subtitle={subtitle} onBack={back} right={shareButton} />
       {analysis ? (
         <>
           <SourceChip source={analysis.source} />
