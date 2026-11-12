@@ -30,6 +30,8 @@ export const color = {
   mintDeep: '#0B7A4D',
   mintSoft: '#E3F8EE',
   reportBg: '#F4F7F9',
+  tabInactive: '#64748B', // 리포트 탭 비선택 글씨(흰 바탕 대비 4.76:1)
+  tabLine: '#E2E8F0', // 리포트 탭 아래 구분선
 } as const;
 
 export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32 } as const;

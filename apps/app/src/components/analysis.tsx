@@ -16,8 +16,8 @@ import {
   type Report,
 } from '@/lib/analysis';
 import { stageSegments } from '@/lib/ui-logic';
-import { Card, Icon, ListRow, Notice, SegmentGauge, SegmentedControl, StepList } from '@/components/ui';
-import { CautionCard, CautionText, ChartSource, DarkCard, DotList, EvidenceLine, FaultHeadline, FaultProcess, Footer, LinkRow, NumberedList, RangeWhy, SeriousViolations, VerticalTimeline, ClaimLines, type Seek } from '@/components/report-sections';
+import { Card, Icon, ListRow, Notice, SegmentGauge, StepList } from '@/components/ui';
+import { CautionCard, CautionText, ChartSource, DarkCard, DotList, EvidenceLine, FaultHeadline, FaultProcess, Footer, LinkRow, NumberedList, RangeWhy, ReportTabs, SeriousViolations, VerticalTimeline, ClaimLines, type Seek } from '@/components/report-sections';
 import { color, radius, space, type } from '@/theme';
 
 // 웹 ReportView와 같은 항목·문구.
@@ -219,7 +219,7 @@ export function ReportView({ analysis, onReload, tab, onTab }: { analysis: Analy
 
   return (
     <View style={{ gap: space[3] }}>
-      <SegmentedControl options={TABS} value={tab} onChange={onTab} />
+      <ReportTabs options={TABS} value={tab} onChange={onTab} />
 
       {tab === 'summary' && (
         <>

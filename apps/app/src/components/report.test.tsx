@@ -141,3 +141,10 @@ test('기준 탭은 범위가 나온 과정과 미확인 조건을 보이고, �
   expect(screen.getByText('+10')).toBeTruthy();
   expect(screen.getByText(/추가 계산 근거 확인이 필요합니다/)).toBeTruthy();
 });
+
+test('리포트 탭은 선택 상태를 알리고 같은 탭 목록을 유지한다', async () => {
+  await render(<ReportView analysis={analysis({})} onReload={() => {}} tab="basis" onTab={() => {}} />);
+  expect(screen.getAllByRole('tab').map((t) => t.props.accessibilityLabel)).toEqual(['요약', '근거', '기준']);
+  expect(screen.getByRole('tab', { name: '기준' }).props.accessibilityState).toEqual({ selected: true });
+  expect(screen.getByRole('tab', { name: '요약' }).props.accessibilityState).toEqual({ selected: false });
+});

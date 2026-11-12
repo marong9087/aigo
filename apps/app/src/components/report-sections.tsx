@@ -326,14 +326,14 @@ export function Footer({ text }: { text: string }) {
   );
 }
 
-// 리포트 화면 머리글(ADR 0027): 남색 직각 상자, 제목·날짜는 화면 가운데에 둔다. 남색은 탭 바로 위에서 끝난다.
+// 리포트 화면 머리글(ADR 0027): 남색 직각 상자, 제목·날짜는 화면 가운데에 둔다. 바로 아래에 흰 탭 줄(ReportTabs)이 붙는다.
 // 뒤로·공유 버튼은 양옆에 같은 너비로 두어 가운데 줄이 한쪽으로 밀리지 않게 한다.
 const SIDE = 38;
 export const headerCircle = { width: SIDE, height: SIDE, borderRadius: SIDE / 2, backgroundColor: color.ink2, alignItems: 'center', justifyContent: 'center' } as const;
 
 export function ReportHeader({ title, subtitle, onBack, right }: { title: string; subtitle?: string; onBack: () => void; right?: ReactNode }) {
   return (
-    <View style={{ backgroundColor: color.ink, marginHorizontal: -space[4], marginBottom: -space[1], paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[3], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+    <View style={{ backgroundColor: color.ink, marginHorizontal: -space[4], paddingHorizontal: space[4], paddingTop: space[2], paddingBottom: space[4], flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
       <Pressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={onBack} style={headerCircle}>
         <Icon name="back" size={18} color={color.white} />
       </Pressable>
@@ -342,6 +342,38 @@ export function ReportHeader({ title, subtitle, onBack, right }: { title: string
         {subtitle ? <Text style={[type.caption, { color: color.brand400, textAlign: 'center' }]} numberOfLines={1}>{subtitle}</Text> : null}
       </View>
       {right ?? <View style={{ width: SIDE }} />}
+    </View>
+  );
+}
+
+// 리포트 탭(ADR 0027): 흰 바탕, 같은 너비 세 칸, 선택 탭은 굵은 남색 글씨와 아래 민트 막대.
+// 남색 머리글 바로 아래에 붙도록 위 간격을 지우고, 아래 구분선으로 본문과 나눈다.
+const TAB_H = 48;
+export function ReportTabs<T extends string>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', backgroundColor: color.white, marginHorizontal: -space[4], marginTop: -space[3], borderBottomWidth: 1, borderBottomColor: color.tabLine }}>
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <Pressable
+            key={o.value}
+            accessibilityRole="tab"
+            accessibilityLabel={o.label}
+            accessibilityState={{ selected: on }}
+            onPress={() => onChange(o.value)}
+            style={{ flex: 1, minHeight: TAB_H, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[2] }}
+          >
+            <Text
+              numberOfLines={1}
+              maxFontSizeMultiplier={1.4}
+              style={{ fontSize: 15, fontWeight: on ? '700' : '500', color: on ? color.ink : color.tabInactive }}
+            >
+              {o.label}
+            </Text>
+            {on && <View style={{ position: 'absolute', left: space[4], right: space[4], bottom: -1, height: 3, borderTopLeftRadius: 2, borderTopRightRadius: 2, backgroundColor: color.mint }} />}
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

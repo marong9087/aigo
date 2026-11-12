@@ -2,7 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, type ScrollViewInstance } from 'react-native';
 import { ErrorLine, FailureNotice, ProgressView, ReportView, type ReportTab } from '@/components/analysis';
-import { Button, Card, Icon, Screen, SourceChip } from '@/components/ui';
+import { Button, Card, Icon, Screen } from '@/components/ui';
 import { ReportHeader, headerCircle } from '@/components/report-sections';
 import { analysisTitle, seoulDate, useAnalysis } from '@/lib/analysis';
 import { useApi } from '@/lib/api';
@@ -73,7 +73,7 @@ export default function AnalysisScreen() {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/analyses'));
   const report = analysis?.status === 'done' ? analysis.report : null;
   const tabbed = !!report && report.involvement !== 'none';
-  const subtitle = analysis ? [tabbed ? (report.involvement === 'party' ? '내 차 사고' : '제3자 사고') : null, seoulDate(analysis.created_at)].filter(Boolean).join(' · ') : undefined;
+  const subtitle = analysis ? [tabbed ? (report.involvement === 'party' ? '내 차 사고' : '제3자 사고') : null, seoulDate(analysis.created_at), analysis.source === 'dashpi' ? 'DashPi' : null].filter(Boolean).join(' · ') : undefined;
   const shareButton = report ? (
     <Pressable accessibilityRole="button" accessibilityLabel="PDF로 공유" accessibilityState={{ disabled: sharing }} disabled={sharing} onPress={share} style={headerCircle}>
       {sharing ? <ActivityIndicator color={color.white} /> : <Icon name="share" size={16} color={color.white} />}
@@ -86,7 +86,7 @@ export default function AnalysisScreen() {
       <ReportHeader title={analysis ? analysisTitle(analysis) : `분석 #${id}`} subtitle={subtitle} onBack={back} right={shareButton} />
       {analysis ? (
         <>
-          <SourceChip source={analysis.source} />
+          {/* 출처(DashPi)는 머리글 날짜 줄에 붙인다. 머리글과 탭 사이를 비워 두기 위해서다. */}
           <ErrorLine>{error}</ErrorLine>
           {analysis.status !== 'done' ? (
             <ProgressView analysis={analysis} stale={stale} />
