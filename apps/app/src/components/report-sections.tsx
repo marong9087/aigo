@@ -2,7 +2,6 @@
 import * as WebBrowser from 'expo-web-browser';
 import type { ReactNode } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LEVEL, LIKELIHOOD, faultRange, formatTimePrecise, signed, type Evidence, type FaultAssessment, type Report } from '@/lib/analysis';
 import { Card, Icon, ListRow, TimeChip, type IconName } from '@/components/ui';
 import { color, radius, space, type } from '@/theme';
@@ -379,36 +378,47 @@ export function ReportTabs<T extends string>({ options, value, onChange }: { opt
   );
 }
 
-// 리포트 머리글 오른쪽 "더 보기" 메뉴(ADR 0027): 아래에서 올라오는 시트에 글자로 된 동작을 보인다.
+// 리포트 머리글 오른쪽 "더 보기" 메뉴(ADR 0027): ⋯ 버튼 바로 아래에 작은 상자로 뜬다(안드로이드 기본 메뉴 방식).
+// 바깥을 누르거나 뒤로 가기를 누르면 닫힌다. anchor는 ⋯ 버튼의 화면 위치(measureInWindow)다.
 export type MenuAction = { label: string; icon: IconName; onPress: () => void; danger?: boolean; disabled?: boolean };
-export function ReportMenu({ visible, actions, onClose }: { visible: boolean; actions: MenuAction[]; onClose: () => void }) {
-  const insets = useSafeAreaInsets();
+export type MenuAnchor = { top: number; right: number };
+const MENU_W = 228;
+export function ReportMenu({ visible, actions, anchor, onClose }: { visible: boolean; actions: MenuAction[]; anchor: MenuAnchor | null; onClose: () => void }) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable accessibilityLabel="메뉴 닫기" onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' }}>
-        <Pressable onPress={() => {}} style={{ backgroundColor: color.white, borderTopLeftRadius: radius.card, borderTopRightRadius: radius.card, paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[4] + insets.bottom }}>
-          <View style={{ alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: color.gray4, marginBottom: space[2] }} />
-          {actions.map((a) => {
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent navigationBarTranslucent onRequestClose={onClose}>
+      <Pressable accessibilityLabel="메뉴 닫기" onPress={onClose} style={{ flex: 1 }}>
+        <View
+          accessibilityRole="menu"
+          onStartShouldSetResponder={() => true}
+          style={{
+            position: 'absolute', top: anchor?.top ?? 56, right: anchor?.right ?? space[4], width: MENU_W,
+            backgroundColor: color.white, borderRadius: radius.input, paddingVertical: space[1],
+            shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8,
+          }}
+        >
+          {actions.map((a, i) => {
             const fg = a.danger ? color.danger600 : color.gray12;
             return (
               <Pressable
                 key={a.label}
-                accessibilityRole="button"
+                accessibilityRole="menuitem"
                 accessibilityLabel={a.label}
                 accessibilityState={{ disabled: !!a.disabled }}
                 disabled={a.disabled}
                 onPress={() => { onClose(); a.onPress(); }}
-                style={({ pressed }) => ({ minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[2], borderRadius: radius.row, backgroundColor: pressed ? color.gray3 : 'transparent', opacity: a.disabled ? 0.4 : 1 })}
+                style={({ pressed }) => ({
+                  minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[4],
+                  backgroundColor: pressed ? color.gray3 : 'transparent', opacity: a.disabled ? 0.4 : 1,
+                  // 삭제처럼 위험한 항목은 위 항목들과 얇은 선으로 나눈다.
+                  borderTopWidth: a.danger && i > 0 ? 1 : 0, borderTopColor: color.gray4,
+                })}
               >
-                <Icon name={a.icon} size={20} color={fg} />
-                <Text style={[type.body, { fontSize: 16, fontWeight: '600', color: fg }]}>{a.label}</Text>
+                <Icon name={a.icon} size={18} color={fg} />
+                <Text style={[type.body, { fontWeight: '600', color: fg }]} numberOfLines={1}>{a.label}</Text>
               </Pressable>
             );
           })}
-          <Pressable accessibilityRole="button" accessibilityLabel="취소" onPress={onClose} style={{ minHeight: 52, alignItems: 'center', justifyContent: 'center', marginTop: space[2], borderRadius: radius.row, backgroundColor: color.gray3 }}>
-            <Text style={[type.body, { fontSize: 16, fontWeight: '600', color: color.gray11 }]}>취소</Text>
-          </Pressable>
-        </Pressable>
+        </View>
       </Pressable>
     </Modal>
   );

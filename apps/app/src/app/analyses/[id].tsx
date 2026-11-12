@@ -1,15 +1,15 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, type ScrollViewInstance } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Pressable, Text, type ScrollViewInstance, type ViewInstance } from 'react-native';
 import { ErrorLine, FailureNotice, ProgressView, ReportView, type ReportTab } from '@/components/analysis';
 import { Button, Card, Icon, Screen } from '@/components/ui';
-import { ReportHeader, ReportMenu, headerCircle, type MenuAction } from '@/components/report-sections';
+import { ReportHeader, ReportMenu, headerCircle, type MenuAction, type MenuAnchor } from '@/components/report-sections';
 import { analysisTitle, seoulDate, useAnalysis } from '@/lib/analysis';
 import { useApi } from '@/lib/api';
 import type { ApiFailure } from '@/lib/api';
 import { shareReportPdf } from '@/lib/share-report';
 import { deleteReportPdf } from '@/lib/cache';
-import { color, type } from '@/theme';
+import { color, space, type } from '@/theme';
 
 export default function AnalysisScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,7 +18,8 @@ export default function AnalysisScreen() {
   const { analysis, notFound, stale, stop, reload } = useAnalysis(id);
   const [deleting, setDeleting] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menu, setMenu] = useState<MenuAnchor | null>(null);
+  const menuRef = useRef<ViewInstance>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<ReportTab>('summary');
   const scroll = useRef<ScrollViewInstance>(null);
@@ -84,8 +85,11 @@ export default function AnalysisScreen() {
         { label: '분석 삭제', icon: 'trash' as const, onPress: remove, danger: true, disabled: deleting },
       ]
     : [];
+  // ⋯ 버튼의 화면 위치를 재서 메뉴 상자를 바로 아래 오른쪽 끝에 맞춘다.
+  const openMenu = () =>
+    menuRef.current?.measureInWindow((x, y, w, h) => setMenu({ top: y + h + 6, right: Math.max(space[2], Dimensions.get('window').width - (x + w)) }));
   const menuButton = analysis ? (
-    <Pressable accessibilityRole="button" accessibilityLabel="더 보기" accessibilityHint="리포트 PDF 보내기, 영상 다시 올리기, 분석 삭제" onPress={() => setMenuOpen(true)} style={headerCircle}>
+    <Pressable ref={menuRef} accessibilityRole="button" accessibilityLabel="더 보기" accessibilityHint="리포트 PDF 보내기, 영상 다시 올리기, 분석 삭제" onPress={openMenu} style={headerCircle}>
       {sharing || deleting ? <ActivityIndicator color={color.white} /> : <Icon name="dots" size={20} color={color.white} />}
     </Pressable>
   ) : undefined;
@@ -94,7 +98,7 @@ export default function AnalysisScreen() {
     <Screen scroll scrollRef={scroll} background={color.reportBg} topColor={color.ink} barStyle="light-content">
       <Stack.Screen options={{ headerShown: false }} />
       <ReportHeader title={analysis ? analysisTitle(analysis) : `분석 #${id}`} subtitle={subtitle} onBack={back} right={menuButton} />
-      <ReportMenu visible={menuOpen} actions={actions} onClose={() => setMenuOpen(false)} />
+      <ReportMenu visible={menu !== null} anchor={menu} actions={actions} onClose={() => setMenu(null)} />
       {analysis ? (
         <>
           {/* 출처(DashPi)는 머리글 날짜 줄에 붙인다. 머리글과 탭 사이를 비워 두기 위해서다. */}

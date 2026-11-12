@@ -158,6 +158,7 @@ test('더 보기 메뉴는 글자로 된 동작을 보이고, 누르면 메뉴�
   await render(
     <ReportMenu
       visible
+      anchor={{ top: 60, right: 16 }}
       onClose={onClose}
       actions={[
         { label: '리포트 PDF로 보내기', icon: 'share', onPress: send },
@@ -166,9 +167,9 @@ test('더 보기 메뉴는 글자로 된 동작을 보이고, 누르면 메뉴�
       ]}
     />,
   );
-  await fireEvent.press(screen.getByRole('button', { name: '리포트 PDF로 보내기' }));
+  await fireEvent.press(screen.getByRole('menuitem', { name: '리포트 PDF로 보내기' }));
   expect(onClose).toHaveBeenCalled();
   expect(send).toHaveBeenCalled();
-  expect(screen.getByRole('button', { name: '분석 삭제' }).props.accessibilityState).toEqual({ disabled: true });
-  expect(screen.getByRole('button', { name: '취소' })).toBeTruthy();
+  expect(screen.getByRole('menuitem', { name: '분석 삭제' }).props.accessibilityState).toEqual({ disabled: true });
+  expect(screen.getByLabelText('메뉴 닫기')).toBeTruthy();
 });
